@@ -1,0 +1,60 @@
+:root {
+  --page: #060607;
+  --ink: #f2f1ee;
+  --dim: rgba(242, 241, 238, 0.55);
+  --hairline: rgba(242, 241, 238, 0.22);
+  --on-ink: #0b0b0d;
+  --frost: rgba(255, 255, 255, 0.09);
+  --glass: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(255, 255, 255, 0.14)
+  );
+  --panel-line: rgba(255, 255, 255, 0.26);
+  --control-bg: rgba(255, 255, 255, 0.07);
+
+  --sans: 'Inter', 'Avenir Next', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+
+  color-scheme: dark;
+  font: 14px/1.45 var(--sans);
+  background: var(--page);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--page);
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hand-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
