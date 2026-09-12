@@ -1,0 +1,657 @@
+/* ============================================================
+   hts_01 — hand tracked synth.
+   Black bezel page, rounded video stage with adaptive shade,
+   lightweight liquid-glass panels, white ink throughout.
+   ============================================================ */
+
+.hts-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  padding: 18px 30px 54px; /* extra black bezel along the bottom */
+  gap: 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink);
+  text-transform: lowercase;
+  font-weight: 400;
+}
+
+/* header row on the black bezel: title left, pills right */
+.hts-header {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hts-title {
+  font-family: var(--sans);
+  font-size: 15px;
+}
+
+/* ---- Stage: the rounded video area; everything lives inside ---- */
+.hts-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-backdrop-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* native aspect — never crop or zoom the feed */
+  transform: scaleX(-1);
+  z-index: 0;
+}
+
+.video-backdrop-fallback {
+  position: absolute;
+  inset: 0;
+  background: #1a1b1e;
+}
+
+/* darken layer — opacity set by the shade slider (tone sheet).
+   z-index above the video: the <video> is appended AFTER this div, so
+   without it the live feed paints on top and no shade is visible. */
+.video-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* GlassShape host: invisible registration marker (see GlassCanvas.tsx) */
+.gw-fx {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* the liquid-glass WebGL layer: above video+shade, below every panel */
+.gw-glass-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* shader-glassed elements: the canvas paints their glass body AND its
+   border (borderEnabled in glass-preset.js) as one flattened layer — the
+   DOM keeps only text, the hover ring, and the active outline */
+.gw-lg {
+  background: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* activation + hover rings come from the shader (GlassCanvas passes a
+   per-shape border weight) — the DOM never draws its own ring here */
+.gw-lg.gw-card-live,
+.gw-lg.gw-hot,
+.gw-lg:hover {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--ink) !important;
+}
+
+.gw-dim {
+  color: var(--dim);
+}
+
+.gw-micro {
+  font-family: var(--sans);
+  font-size: 9px;
+  color: var(--ink);
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
+/* ---- Glass base: ONE element — gradient sheen + heavy backdrop blur +
+   specular inset highlights + soft lift. Rounds/clips on its own radius. ---- */
+.hts-pill,
+.gw-card,
+.gw-rail,
+.gw-sheet,
+.gw-scope-dock,
+.gw-staff-float,
+.hts-tutorial {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(2) brightness(1.18);
+  -webkit-backdrop-filter: blur(26px) saturate(2) brightness(1.18);
+  border: 1px solid var(--panel-line);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 18px rgba(255, 255, 255, 0.07),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* active glass elements keep the same glass and bolden the outline:
+   white border + 1px inset ring (2px total), never a solid fill */
+.hts-pill.gw-active,
+.gw-card.gw-card-live {
+  background: var(--glass) !important;
+  border-color: var(--ink) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--ink),
+    inset 0 0 18px rgba(255, 255, 255, 0.07),
+    0 8px 24px rgba(0, 0, 0, 0.35) !important;
+  color: var(--ink) !important;
+}
+
+.gw-staff-float {
+  border-radius: 12px;
+}
+
+/* ---- Pills (in the bezel header) ---- */
+.hts-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.hts-pill {
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 12px;
+}
+
+/* ---- Melody ruler along the top ---- */
+.gw-ruler-wrap {
+  position: absolute;
+  top: 22px;
+  /* right-aligned: runs all the way to the stage's right edge */
+  left: 24%;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 20;
+}
+
+.gw-ruler {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-top: 3px;
+}
+
+.gw-ruler::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--ink);
+  opacity: 0.9;
+}
+
+.gw-ruler-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 4%;
+  font-size: 9px;
+  color: var(--ink);
+}
+
+.gw-ruler-tick {
+  width: 1px;
+  height: 7px;
+  background: var(--ink);
+  opacity: 0.45;
+}
+
+.gw-ruler-root .gw-ruler-tick {
+  height: 13px;
+  opacity: 1;
+}
+
+.gw-ruler-off {
+  opacity: 0.35;
+}
+
+.gw-ruler-hit {
+  font-size: 10.5px;
+  opacity: 1;
+}
+
+.gw-ruler-hit .gw-ruler-tick {
+  width: 3px;
+  height: 17px;
+  opacity: 1;
+}
+
+/* ---- Tab rail (liquid glass, hugging the right edge) ---- */
+.gw-rail {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 5px;
+  border-radius: 14px;
+  z-index: 40;
+}
+
+.gw-tab {
+  writing-mode: vertical-rl;
+  padding: 14px 8px;
+  border-radius: 9px;
+  font-size: 11px;
+  color: var(--dim);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.gw-tab-open {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* ---- Sheets ---- */
+.gw-sheet {
+  position: absolute;
+  right: 62px;
+  top: 70px;
+  /* stop above the scope dock (bottom 16 + ~134 tall + gap) */
+  bottom: 162px;
+  width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border-width: 0;
+  transition: width 0.38s cubic-bezier(0.32, 0.72, 0, 1), border-width 0s 0s;
+  z-index: 35;
+}
+
+.gw-sheet-open {
+  width: 312px;
+  border-width: 1px;
+}
+
+.gw-sheet-body {
+  width: 312px;
+  height: 100%;
+  padding: 18px 18px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gw-sheet-title {
+  font-size: 11px;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 8px;
+}
+
+.gw-sheet-label {
+  font-size: 8.5px;
+  color: var(--dim);
+  margin-top: 6px;
+}
+
+.gw-sheet-note {
+  font-size: 8.5px;
+  line-height: 1.7;
+  color: var(--dim);
+  margin-top: 6px;
+}
+
+/* ---- Pills / buttons ---- */
+.gw-pill {
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--hairline);
+  background: var(--control-bg);
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--ink);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.gw-active {
+  background: var(--ink) !important;
+  border-color: var(--ink) !important;
+  color: var(--on-ink) !important;
+}
+
+.gw-active .gw-dim {
+  color: var(--on-ink);
+  opacity: 0.65;
+}
+
+.gw-hot {
+  border-color: var(--ink) !important;
+}
+
+.gw-play {
+  padding: 12px 0;
+  border-radius: 9px;
+  border: 1px solid var(--ink);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+
+.gw-slot-row,
+.gw-wave-row,
+.gw-oct-row,
+.gw-cam-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.gw-root-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.gw-qual-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.gw-genre-list,
+.gw-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gw-genre {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gw-oct-val {
+  font-size: 12px;
+  min-width: 56px;
+  text-align: center;
+}
+
+/* ---- BPM / shade bars ---- */
+.gw-bpm-bar {
+  position: relative;
+  flex: none; /* else flexbox crushes it to fit an overflowing sheet */
+  height: 26px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  background: var(--control-bg);
+  cursor: ew-resize;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.gw-bpm-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--ink);
+}
+
+/* ---- Knobs ---- */
+.gw-knob-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 4px;
+}
+
+.gw-knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  touch-action: none;
+  cursor: ns-resize;
+}
+
+.gw-knob.gw-hot {
+  border-color: var(--ink);
+}
+
+.gw-knob-svg {
+  display: block;
+  overflow: visible;
+}
+
+.gw-knob-ring {
+  fill: transparent;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+.gw-knob-needle {
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.gw-knob-tick {
+  stroke: var(--dim);
+  stroke-width: 2;
+}
+
+.gw-knob-label {
+  font-size: 8px;
+}
+
+.gw-knob-readout {
+  font-size: 8px;
+  color: var(--dim);
+}
+
+/* ---- Piano voicing editor ---- */
+.gw-piano {
+  position: relative;
+  display: flex;
+  height: 84px;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--control-bg);
+  flex: none;
+}
+
+.gw-pkey-w {
+  flex: 1;
+  border-right: 1px solid rgba(10, 10, 12, 0.35);
+  background: rgba(255, 255, 255, 0.82);
+  transition: background 0.08s;
+}
+
+.gw-pkey-w:last-of-type {
+  border-right: none;
+}
+
+.gw-pkey-w.gw-pkey-on {
+  background: #3b82f6;
+}
+
+.gw-pkey-b {
+  position: absolute;
+  top: 0;
+  width: 4.2%;
+  height: 55%;
+  background: #0b0b0d;
+  border: 1px solid #0b0b0d;
+  border-radius: 0 0 3px 3px;
+  z-index: 2;
+  transition: background 0.08s;
+}
+
+.gw-pkey-b.gw-pkey-on {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.gw-piano-range {
+  text-align: center;
+  display: block;
+}
+
+/* ---- Chord cards along the bottom ---- */
+.gw-chords {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+  max-width: calc(100% - 300px);
+  flex-wrap: wrap;
+}
+
+.gw-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 138px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+}
+
+.gw-card-finger {
+  font-size: 8.5px;
+  color: var(--dim);
+}
+
+.gw-card-name {
+  font-family: var(--sans);
+  font-size: 16px;
+}
+
+/* ---- Scope dock ---- */
+.gw-scope-dock {
+  position: absolute;
+  right: 62px;
+  bottom: 16px;
+  z-index: 20;
+  padding: 6px;
+  border-radius: 13px;
+}
+
+/* ---- Floating staff card ---- */
+.gw-staff-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 25;
+  pointer-events: none;
+  /* no transform transition: the glass canvas reads this element's rect per
+     frame, and a css tween makes the two layers visibly shear apart */
+  will-change: transform;
+}
+
+.gw-staff-card {
+  width: 186px;
+  color: var(--ink);
+}
+
+.gw-staff-anchored {
+  left: 16px;
+  bottom: 96px;
+  top: auto;
+  transform: none;
+}
+
+/* ---- Tutorial overlay ---- */
+.hts-tutorial {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, 80%);
+  padding: 20px 22px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 45;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* ---- press feedback ---- */
+.hts-page button:active {
+  transform: scale(0.97);
+}
+
+/* ---- Mouse hover (hand-cursor hover uses .gw-hot, camera only) ---- */
+@media (hover: hover) {
+  .gw-pill:hover,
+  .gw-tab:hover,
+  .gw-play:hover,
+  .gw-card:hover,
+  .gw-knob:hover,
+  .gw-pkey-w:hover,
+  .gw-pkey-b:hover {
+    border-color: var(--ink);
+  }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 980px) {
+  .gw-ruler-wrap {
+    left: 18%;
+    right: 12px;
+  }
+  .gw-ruler-name {
+    font-size: 7px;
+  }
+  .gw-card {
+    width: 112px;
+  }
+  .gw-card-name {
+    font-size: 13px;
+  }
+  .gw-sheet-open,
+  .gw-sheet-body {
+    width: 258px;
+  }
+  .gw-chords {
+    max-width: calc(100% - 40px);
+  }
+  .gw-scope-dock {
+    display: none;
+  }
+}
