@@ -50,42 +50,15 @@ Everything runs locally in the browser. Zero backend. Zero samples. Zero latency
 
 ## How It Works
 
-```
-                    ┌─────────────────────────────────────────┐
-                    │            YOUR WEBCAM FEED              │
-                    │   ┌─────────────────────────────────┐   │
-                    │   │   MediaPipe HandLandmarker (GPU) │   │
-                    │   │   21 landmarks × 2 hands × 30fps│   │
-                    │   └──────────┬──────────────────────┘   │
-                    └──────────────┼──────────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────────────────┐
-                    │         ONE-EURO SMOOTHING               │
-                    │    + per-finger touch hysteresis          │
-                    └──────────────┬──────────────────────────┘
-                                   │
-              ┌────────────────────┼────────────────────────┐
-              │                    │                        │
-    ┌─────────▼─────────┐ ┌───────▼────────┐ ┌────────────▼───────┐
-    │   RIGHT HAND      │ │   LEFT HAND    │ │   WRIST ANGLE      │
-    │                    │ │                │ │                    │
-    │  thumb+index →     │ │  thumb+finger  │ │  straight = neutral│
-    │    white keys      │ │  → chord 1-4   │ │  clockwise = open  │
-    │  thumb+middle →    │ │                │ │  counter = close   │
-    │    black keys      │ │  staff card    │ │                    │
-    │  thumb+ring →      │ │  follows hand  │ │  ±75° full range   │
-    │    slide/glide     │ │                │ │                    │
-    └───────────┬────────┘ └───────┬────────┘ └─────────┬──────────┘
-                │                  │                     │
-                └──────────────────┼─────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────────────────┐
-                    │          WEB AUDIO GRAPH                 │
-                    │                                          │
-                    │  oscillator → filter → delay → gain → 🔊│
-                    │  + square-wave synth bass                │
-                    │  + 8-bit drum machine (all synthesized)  │
-                    └──────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["🎥 YOUR WEBCAM FEED<br/><i>MediaPipe HandLandmarker · GPU<br/>21 landmarks × 2 hands × 30fps</i>"] --> B["ONE-EURO SMOOTHING<br/><i>+ per-finger touch hysteresis</i>"]
+    B --> C["✋ RIGHT HAND<br/><br/>thumb+index → white keys<br/>thumb+middle → black keys<br/>thumb+ring → slide/glide"]
+    B --> D["🤚 LEFT HAND<br/><br/>thumb+finger → chord 1–4<br/>staff card follows hand"]
+    B --> E["🔄 WRIST ANGLE<br/><br/>straight = neutral<br/>clockwise = open filter<br/>counter = close filter<br/>±75° full range"]
+    C --> F["🔊 WEB AUDIO GRAPH<br/><br/>oscillator → filter → delay → gain<br/>+ square-wave synth bass<br/>+ 8-bit drum machine (all synthesized)"]
+    D --> F
+    E --> F
 ```
 
 <br>
@@ -108,27 +81,15 @@ Everything runs locally in the browser. Zero backend. Zero samples. Zero latency
 
 ## The Instrument
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                                                                  │
-│  ┌─── BEAT ──────┐  ┌─── CHORDS ────┐  ┌─── TONE ────────────┐ │
-│  │                │  │               │  │                     │ │
-│  │  8-bit drums   │  │  progression  │  │  waveform selector  │ │
-│  │  synth bass    │  │  presets      │  │  filter / resonance │ │
-│  │  tempo 60-180  │  │  root × qual  │  │  attack / release   │ │
-│  │                │  │  per slot     │  │  echo / volume      │ │
-│  │  ▸ city pop    │  │               │  │  melody octave      │ │
-│  │  ▸ lofi        │  │  ▸ city pop   │  │                     │ │
-│  │  ▸ bossa nova  │  │  ▸ pop        │  │  ┌───────────────┐  │ │
-│  │  ▸ samba       │  │  ▸ doo-wop    │  │  │ ∿∿∿ SCOPE ∿∿∿ │  │ │
-│  │  ▸ hip hop     │  │  ▸ jazz       │  │  │  live phosphor │  │ │
-│  │  ▸ pop         │  │  ▸ andalusian │  │  │  trace + freq  │  │ │
-│  │  ▸ house       │  │  ▸ blues      │  │  │  + vpp readout │  │ │
-│  │                │  │               │  │  └───────────────┘  │ │
-│  └────────────────┘  └───────────────┘  └─────────────────────┘ │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
+> Three side panels control everything. Tap the tabs on the right edge to open them.
+
+| BEAT | CHORDS | TONE |
+|:-----|:-------|:-----|
+| 8-bit drums + synth bass | Progression presets | Waveform selector |
+| Tempo 60–180 bpm | Root × quality per slot | Filter / resonance |
+| city pop · lofi · bossa nova | city pop · pop · doo-wop | Attack / release |
+| samba · hip hop · pop · house | jazz · andalusian · blues | Echo / volume / octave |
+| | | **Live oscilloscope** — phosphor trace, freq + vpp |
 
 ### Modes
 
