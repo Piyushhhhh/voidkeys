@@ -11,12 +11,39 @@ left hand holds chords, wrist angle sweeps the filter. An 8-bit drum machine kee
 
 Everything runs locally in the browser. Zero backend. Zero samples. Zero latency compromise.
 
+[**Try it live →**](https://voidkeys-tawny.vercel.app)
+
 ---
 
 `vite` · `react 19` · `typescript` · `mediapipe` · `web audio` · `webgl`
 
 ---
 
+</div>
+
+<br>
+
+<div align="center">
+
+<img src="docs/screenshot-hero.png" alt="voidkeys instrument — note ruler, chord slots, and oscilloscope" width="100%">
+
+<sub>The instrument stage — chromatic ruler across the top, four chord slots at the bottom, live oscilloscope</sub>
+
+</div>
+
+<br>
+
+<div align="center">
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshot-chords.png" alt="chords panel with progression presets"></td>
+<td width="50%"><img src="docs/screenshot-beat.png" alt="beat panel with drum patterns and tempo"></td>
+</tr>
+<tr>
+<td align="center"><sub><b>Chords panel</b> — key selector, progression presets, per-slot editing</sub></td>
+<td align="center"><sub><b>Beat panel</b> — 7 drum patterns, tempo slider, all synthesized</sub></td>
+</tr>
+</table>
 </div>
 
 <br>
