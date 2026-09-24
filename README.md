@@ -1,46 +1,192 @@
-# voidkeys — hand tracked synth
+<div align="center">
 
-**Melody with your right hand, chords with your left, 8-bit beats with a synth bass underneath.** Your webcam tracks both hands locally in the browser (MediaPipe — the feed never leaves your machine). The video sits in a rounded black-bezel stage under an adaptive shade (brighter room → more shade, so the white ink always reads), with lightweight liquid-glass panels floating over it.
+# VOIDKEYS
 
-## How to play
+### `[ hand-tracked synthesizer ]`
 
-| | |
-| --- | --- |
-| **Right hand** | finger piano along the top ruler: thumb+index = white keys · thumb+middle = black keys · thumb+ring = slide · left = low, right = high |
-| **Left hand** | thumb + **index / middle / ring / pinky** = chord slots 1–4, held while touched — a floating staff card follows your hand showing the notes |
-| **Left hand angle** | tilt your wrist to sweep the filter — straight up is neutral, clockwise opens, counter-clockwise closes |
-| **Mouse** | everything also works with a mouse — click buttons, hold chord cards, drag knobs vertically, drag the tempo bar |
-| **FREE mode** (default) | chromatic slide |
-| **AUTO mode** | slide locks to the scale that fits the sounding chord (maj7→ionian, min7→dorian, 7→mixolydian, dim→locrian) |
+**Play music in the air. No keyboard. No MIDI. Just your hands.**
 
-Press **POWER** first (browsers need a click to unlock audio). No camera → mouse fallback (click = pinch).
+Your webcam tracks both hands in real-time — right hand plays melody,
+left hand holds chords, wrist angle sweeps the filter. An 8-bit drum machine keeps time underneath.
 
-## Defaults
+Everything runs locally in the browser. Zero backend. Zero samples. Zero latency compromise.
 
-- **Beat:** CITY POP, 102 bpm — with a square-wave synth bass that follows the root of whatever chord you're holding
-- **Chords:** the royal road progression — Fmaj7 · G7 · Em7 · Am7 (IVmaj7–V7–iii7–vi7)
+---
 
-## The instrument
+`vite` · `react 19` · `typescript` · `mediapipe` · `web audio` · `webgl`
 
-- **BEAT** — 8-bit drum machine (square kick, noise snare/hats, synth bass), all synthesized live: city pop · lofi · bossa nova · samba · hip hop · pop · house, draggable tempo 60–180
-- **CHORDS** — progression presets (city pop, pop I–V–vi–IV, 50s doo-wop, jazz ii–V–I, Andalusian, blues) plus per-slot root × quality editing (maj, min, 7, maj7, min7, sus4, dim, add9)
-- **TONE** — waveform + filter/res/attack/release/echo/volume knobs (pinch + wrist-twist, or mouse drag), melody octave, tracking source
-- Chord voicings are fully editable per-slot on a 2-octave piano keyboard
-- Bench-style oscilloscope on the live output bus: triggered phosphor trace, frequency and vpp readouts
+---
 
-## Stack
+</div>
 
-Vite + React 19 + TypeScript · `@mediapipe/tasks-vision` HandLandmarker (2 hands, GPU) · Web Audio, zero samples · One-Euro smoothing, per-finger touch hysteresis · no backend.
+<br>
 
-## Develop
+## How It Works
+
+```
+                    ┌─────────────────────────────────────────┐
+                    │            YOUR WEBCAM FEED              │
+                    │   ┌─────────────────────────────────┐   │
+                    │   │   MediaPipe HandLandmarker (GPU) │   │
+                    │   │   21 landmarks × 2 hands × 30fps│   │
+                    │   └──────────┬──────────────────────┘   │
+                    └──────────────┼──────────────────────────┘
+                                   │
+                    ┌──────────────▼──────────────────────────┐
+                    │         ONE-EURO SMOOTHING               │
+                    │    + per-finger touch hysteresis          │
+                    └──────────────┬──────────────────────────┘
+                                   │
+              ┌────────────────────┼────────────────────────┐
+              │                    │                        │
+    ┌─────────▼─────────┐ ┌───────▼────────┐ ┌────────────▼───────┐
+    │   RIGHT HAND      │ │   LEFT HAND    │ │   WRIST ANGLE      │
+    │                    │ │                │ │                    │
+    │  thumb+index →     │ │  thumb+finger  │ │  straight = neutral│
+    │    white keys      │ │  → chord 1-4   │ │  clockwise = open  │
+    │  thumb+middle →    │ │                │ │  counter = close   │
+    │    black keys      │ │  staff card    │ │                    │
+    │  thumb+ring →      │ │  follows hand  │ │  ±75° full range   │
+    │    slide/glide     │ │                │ │                    │
+    └───────────┬────────┘ └───────┬────────┘ └─────────┬──────────┘
+                │                  │                     │
+                └──────────────────┼─────────────────────┘
+                                   │
+                    ┌──────────────▼──────────────────────────┐
+                    │          WEB AUDIO GRAPH                 │
+                    │                                          │
+                    │  oscillator → filter → delay → gain → 🔊│
+                    │  + square-wave synth bass                │
+                    │  + 8-bit drum machine (all synthesized)  │
+                    └──────────────────────────────────────────┘
+```
+
+<br>
+
+## Controls
+
+| Input | Action |
+|:------|:-------|
+| **Right hand** thumb + index | Play **white keys** — position maps to pitch on the top ruler |
+| **Right hand** thumb + middle | Play **black keys** (chromatic complement) |
+| **Right hand** thumb + ring | **Slide** with 50ms glide |
+| **Left hand** thumb + index/middle/ring/pinky | Hold **chord slots 1–4** |
+| **Left wrist** tilt | **Sweep the filter** — clockwise opens, counter-clockwise closes |
+| **Pinch knob** + twist | Turn any knob via wrist rotation (135° = full range) |
+| **Mouse** | Full fallback — click, hold, drag. Everything works without a camera |
+
+> Press **POWER** first — browsers require a user gesture to unlock audio.
+
+<br>
+
+## The Instrument
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  ┌─── BEAT ──────┐  ┌─── CHORDS ────┐  ┌─── TONE ────────────┐ │
+│  │                │  │               │  │                     │ │
+│  │  8-bit drums   │  │  progression  │  │  waveform selector  │ │
+│  │  synth bass    │  │  presets      │  │  filter / resonance │ │
+│  │  tempo 60-180  │  │  root × qual  │  │  attack / release   │ │
+│  │                │  │  per slot     │  │  echo / volume      │ │
+│  │  ▸ city pop    │  │               │  │  melody octave      │ │
+│  │  ▸ lofi        │  │  ▸ city pop   │  │                     │ │
+│  │  ▸ bossa nova  │  │  ▸ pop        │  │  ┌───────────────┐  │ │
+│  │  ▸ samba       │  │  ▸ doo-wop    │  │  │ ∿∿∿ SCOPE ∿∿∿ │  │ │
+│  │  ▸ hip hop     │  │  ▸ jazz       │  │  │  live phosphor │  │ │
+│  │  ▸ pop         │  │  ▸ andalusian │  │  │  trace + freq  │  │ │
+│  │  ▸ house       │  │  ▸ blues      │  │  │  + vpp readout │  │ │
+│  │                │  │               │  │  └───────────────┘  │ │
+│  └────────────────┘  └───────────────┘  └─────────────────────┘ │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Modes
+
+| Mode | Behavior |
+|:-----|:---------|
+| **FREE** (default) | Chromatic slide — all 12 notes available |
+| **AUTO** | Melody locks to chord-fitting scale — maj7 → ionian, min7 → dorian, dom7 → mixolydian, dim → locrian |
+
+### Default Preset
+
+```
+Beat:    CITY POP @ 102 bpm
+Chords:  Fmaj7 → G7 → Em7 → Am7   (the royal road: IVmaj7–V7–iii7–vi7)
+Bass:    square wave, follows chord root
+```
+
+<br>
+
+## Architecture
+
+```
+src/
+├── audio/
+│   ├── theory.ts          # scales, chord-scale pairings, MIDI utils
+│   ├── SynthEngine.ts     # oscillator + filter + delay chain
+│   └── DrumMachine.ts     # pattern sequencer, all synthesis (no samples)
+├── gesture/
+│   ├── types.ts           # hand event interfaces
+│   ├── oneEuro.ts         # jitter filter for landmark smoothing
+│   ├── tilt.ts            # wrist angle → filter sweep mapping
+│   ├── classify.ts        # finger-pair → action classification
+│   ├── useHandEvents.ts   # React hook: landmarks → gesture stream
+│   └── GestureProvider.tsx# context provider for hand tracking state
+├── instrument/
+│   ├── Instrument.tsx     # main panel — BEAT / CHORDS / TONE sections
+│   ├── GlassCanvas.tsx    # WebGL liquid-glass effect layer
+│   ├── Knob.tsx           # rotary control (mouse drag + hand twist)
+│   ├── StaffChord.tsx     # floating staff notation that follows your hand
+│   └── TechScope.tsx      # triggered phosphor oscilloscope
+├── components/
+│   ├── HandOverlay.tsx    # landmark dot visualization
+│   └── VideoBackdrop.tsx  # camera feed with adaptive shade
+└── main.tsx               # entry point
+```
+
+<br>
+
+## Tech Highlights
+
+- **Zero samples** — every sound (kick, snare, hats, bass, melody) is synthesized live with Web Audio oscillators + noise
+- **One-Euro filter** — adaptive smoothing eliminates hand-tracking jitter while preserving fast gestures
+- **Liquid glass UI** — WebGL shader renders frosted-glass panels over the live camera feed
+- **Adaptive shade** — backdrop dims automatically with room brightness so white UI always reads
+- **Per-finger hysteresis** — prevents ghost touches from landmark noise near threshold
+- **Chord-scale pairing** — AUTO mode uses music theory (ionian/dorian/mixolydian/locrian) to snap melody to harmonically correct notes
+- **No backend** — webcam feed never leaves the device; MediaPipe runs entirely on-device via WASM + GPU
+
+<br>
+
+## Getting Started
 
 ```bash
+git clone https://github.com/Piyushhhhh/voidkeys.git
+cd voidkeys
 npm install
 npm run dev
 ```
 
-`predev`/`prebuild` copies MediaPipe's wasm into `public/mediapipe/wasm` (gitignored); the hand model loads from Google's model CDN at runtime.
+Open `localhost:5173` — allow camera access when prompted.
+
+> `predev` automatically copies MediaPipe WASM to `public/mediapipe/wasm`.
+> The hand model loads from Google's CDN at runtime.
+
+<br>
+
+## Glass Lab
+
+The [`glass-lab/`](glass-lab/) directory is a standalone WebGL playground for the liquid-glass shader — open `glass-lab/index.html` directly to experiment with refraction, blur, and chromatic aberration parameters.
+
+<br>
 
 ---
 
-Built autonomously by [Claude Code](https://claude.com/claude-code).
+<div align="center">
+
+**built with mass and velocity**
+
+</div>
