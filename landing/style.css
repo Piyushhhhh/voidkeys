@@ -1229,3 +1229,19 @@ body { background: var(--canvas); color: var(--ink) }
   #primary-navigation a + a { border-top: 1px solid rgba(242,241,233,.1) }
   #primary-navigation a.is-current { color: #e8e6da }
 }
+
+/* Familiar music-note mark used by the wordmark and browser tab. */
+.wordmark .mark {
+  display: block;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 0;
+  padding: 4px;
+  background: #e8e6da;
+  color: transparent;
+  object-fit: contain;
+}
+@media (max-width: 600px) {
+  .wordmark .mark { width: 22px; height: 22px; flex-basis: 22px }
+}

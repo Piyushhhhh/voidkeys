@@ -147,6 +147,8 @@ src/
 - **Chord-scale pairing** — AUTO mode uses music theory (ionian/dorian/mixolydian/locrian) to snap melody to harmonically correct notes
 - **No backend** — webcam feed never leaves the device; MediaPipe runs entirely on-device via WASM + GPU
 
+The music-note mark uses the [Lucide Music 2 icon](https://github.com/lucide-icons/lucide/blob/main/icons/music-2.svg), distributed under the ISC license; see [`public/LUCIDE-LICENSE.txt`](public/LUCIDE-LICENSE.txt).
+
 <br>
 
 ## Getting Started
