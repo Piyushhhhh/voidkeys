@@ -11,7 +11,7 @@ left hand holds chords, wrist angle sweeps the filter. An 8-bit drum machine kee
 
 Everything runs locally in the browser. Zero backend. Zero samples. Zero latency compromise.
 
-[**Try it live →**](https://voidkeys-tawny.vercel.app)
+[**Visit the landing page →**](https://voidkeys-tawny.vercel.app) · [**Open the instrument →**](https://voidkeys-tawny.vercel.app/instrument/)
 
 ---
 
@@ -158,10 +158,13 @@ npm install
 npm run dev
 ```
 
-Open `localhost:5173` — allow camera access when prompted.
+Open `http://localhost:5173/` for the landing page, or `http://localhost:5173/instrument/` to play. Allow camera access when prompted.
 
 > `predev` automatically copies MediaPipe WASM to `public/mediapipe/wasm`.
 > The hand model loads from Google's CDN at runtime.
+
+The landing page is served at `/`. The playable instrument lives at `/instrument/`.
+The previous `/landing/` path redirects to the homepage.
 
 <br>
 

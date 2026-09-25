@@ -46,18 +46,28 @@ if (nav) {
   const sectionLinks = menuLinks
     .map((link) => ({ link, section: document.querySelector(link.getAttribute('href')) }))
     .filter(({ section }) => section);
-  if ('IntersectionObserver' in window) {
-    const sectionObserver = new IntersectionObserver((entries) => {
-      const visible = entries.filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible) updateActiveLink(sectionLinks.find(({ section }) => section === visible.target)?.link);
-    }, { rootMargin: '-38% 0px -48% 0px', threshold: [0, 0.15, 0.4, 0.7] });
-    sectionLinks.forEach(({ section }) => sectionObserver.observe(section));
-  }
-  window.addEventListener('resize', () => {
-    const activeLink = menuLinks.find((link) => link.classList.contains('is-current'));
-    if (activeLink) updateActiveLink(activeLink);
-  }, { passive: true });
+  let sectionSyncPending = false;
+  const syncActiveSection = () => {
+    sectionSyncPending = false;
+    // Use a stable reading line below the fixed header. IntersectionObserver's
+    // narrow active band could skip short/intermediate sections during scroll.
+    const readingLine = window.scrollY + Math.min(window.innerHeight * 0.42, window.innerHeight - 110);
+    const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 12;
+    const current = atPageEnd
+      ? sectionLinks.at(-1)
+      : sectionLinks
+        .filter(({ section }) => section.getBoundingClientRect().top + window.scrollY <= readingLine)
+        .at(-1);
+    updateActiveLink(current?.link ?? null);
+  };
+  const scheduleSectionSync = () => {
+    if (sectionSyncPending) return;
+    sectionSyncPending = true;
+    window.requestAnimationFrame(syncActiveSection);
+  };
+  window.addEventListener('scroll', scheduleSectionSync, { passive: true });
+  window.addEventListener('resize', scheduleSectionSync, { passive: true });
+  scheduleSectionSync();
 }
 
 // Keep remote background footage from downloading and decoding six clips at
