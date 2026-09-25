@@ -1,137 +1,192 @@
-/* ═══════════════════════════════════════════════════════════════
-   VOIDKEYS — landing page
-   ═══════════════════════════════════════════════════════════════ */
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const DPR = Math.min(window.devicePixelRatio || 1, 2);
-const TAU = Math.PI * 2;
-let mx = 0.5, my = 0.5;
-
-window.addEventListener('mousemove', e => {
-  mx = e.clientX / innerWidth;
-  my = e.clientY / innerHeight;
-});
-
-const lerp = (a, b, t) => a + (b - a) * t;
-const rand = (lo, hi) => lo + Math.random() * (hi - lo);
-
-/* ═══════════════════════════════════════════
-   SCROLL OBSERVER — reveal on enter
-   ═══════════════════════════════════════════ */
-const visibleSections = new Set();
-
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      visibleSections.add(e.target.id);
-      e.target.classList.add('visible');
-    } else {
-      visibleSections.delete(e.target.id);
-    }
-  });
-}, { threshold: .12 });
-
-document.querySelectorAll('.s').forEach(s => observer.observe(s));
-
-/* ═══════════════════════════════════════════
-   PARALLAX — subtle image shift on mouse
-   ═══════════════════════════════════════════ */
-function updateParallax() {
-  const dx = (mx - .5) * 16;
-  const dy = (my - .5) * 10;
-  document.querySelectorAll('.s-img img').forEach(img => {
-    const section = img.closest('.s');
-    if (visibleSections.has(section.id)) {
-      img.style.transform = `scale(1.04) translate(${dx}px, ${dy}px)`;
-    }
-  });
-}
-
-/* ═══════════════════════════════════════════
-   FINAL SECTION — fading tracking dots
-   ═══════════════════════════════════════════ */
-let finalCtx, finalW, finalH;
-const dots = Array.from({ length: 35 }, () => ({
-  x: rand(.1, .9), y: rand(.1, .9),
-  r: rand(1, 3), spd: rand(.3, 1),
-  phase: rand(0, TAU),
-}));
-
-function finalInit() {
-  const c = document.getElementById('c-final');
-  if (!c) return;
-  const rect = c.parentElement.getBoundingClientRect();
-  c.width = rect.width * DPR;
-  c.height = rect.height * DPR;
-  c.style.width = rect.width + 'px';
-  c.style.height = rect.height + 'px';
-  finalCtx = c.getContext('2d');
-  finalCtx.scale(DPR, DPR);
-  finalW = rect.width;
-  finalH = rect.height;
-}
-
-function finalDraw(t) {
-  if (!finalCtx) return;
-  finalCtx.clearRect(0, 0, finalW, finalH);
-  dots.forEach(d => {
-    const alpha = .12 + Math.sin(t * d.spd + d.phase) * .08;
-    if (alpha <= 0) return;
-    finalCtx.fillStyle = `rgba(138,154,108,${alpha})`;
-    finalCtx.beginPath();
-    finalCtx.arc(
-      d.x * finalW + Math.sin(t + d.phase) * 5,
-      d.y * finalH + Math.cos(t * .8 + d.phase) * 4,
-      d.r, 0, TAU
-    );
-    finalCtx.fill();
-  });
-
-  // faint connection lines between nearby dots
-  finalCtx.strokeStyle = 'rgba(138,154,108,.03)';
-  finalCtx.lineWidth = .5;
-  for (let i = 0; i < dots.length; i++) {
-    for (let j = i + 1; j < dots.length; j++) {
-      const ax = dots[i].x * finalW, ay = dots[i].y * finalH;
-      const bx = dots[j].x * finalW, by = dots[j].y * finalH;
-      const dist = Math.hypot(ax - bx, ay - by);
-      if (dist < 120) {
-        finalCtx.beginPath();
-        finalCtx.moveTo(
-          ax + Math.sin(t + dots[i].phase) * 5,
-          ay + Math.cos(t * .8 + dots[i].phase) * 4
-        );
-        finalCtx.lineTo(
-          bx + Math.sin(t + dots[j].phase) * 5,
-          by + Math.cos(t * .8 + dots[j].phase) * 4
-        );
-        finalCtx.stroke();
-      }
-    }
+// Build a small, looping amplitude display to make the hero feel like a live
+// instrument without relying on a video or a stock image.
+const bars = document.querySelector('.wave-bars');
+if (bars && !reduceMotion) {
+  for (let i = 0; i < 52; i += 1) {
+    const bar = document.createElement('i');
+    const wave = Math.abs(Math.sin((i / 51) * Math.PI * 2.2));
+    bar.style.setProperty('--h', `${5 + wave * 24}px`);
+    bar.style.setProperty('--dur', `${0.45 + ((i * 17) % 80) / 100}s`);
+    bar.style.setProperty('--delay', `${-((i * 13) % 60) / 100}s`);
+    bars.append(bar);
   }
 }
 
-/* ═══════════════════════════════════════════
-   MAIN LOOP
-   ═══════════════════════════════════════════ */
-function loop(now) {
-  const t = now * .001;
-  updateParallax();
-  if (visibleSections.has('final')) finalDraw(t);
-  requestAnimationFrame(loop);
-}
-
-/* ═══════════════════════════════════════════
-   INIT
-   ═══════════════════════════════════════════ */
-function init() {
-  finalInit();
-  requestAnimationFrame(loop);
-}
-
-window.addEventListener('resize', finalInit);
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+// Fade sections in as they enter view. Leave content visible when observers
+// or motion preferences make animation unavailable.
+const revealItems = document.querySelectorAll('.reveal');
+if (!reduceMotion && 'IntersectionObserver' in window) {
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.14 });
+  revealItems.forEach((item) => revealObserver.observe(item));
 } else {
-  init();
+  revealItems.forEach((item) => item.classList.add('in-view'));
 }
+
+// A small, original Web Audio loop gives the animated player a real voice.
+// Sound starts only after the visitor presses Play, as required by browsers.
+const demoButton = document.querySelector('#demo-toggle');
+const demoStage = document.querySelector('#demo-stage');
+const demoStatus = document.querySelector('#demo-status');
+const reelFrames = [...document.querySelectorAll('.reel-frame')];
+const reelStep = document.querySelector('#reel-step');
+const reelTitle = document.querySelector('#reel-title');
+const reelCaptions = [
+  'TWO HANDS. ONE INSTRUMENT.',
+  'PINCH A NOTE. PLAY A MELODY.',
+  'HOLD A CHORD. FEEL IT RING.',
+  'TURN YOUR WRIST. OPEN THE FILTER.',
+  'GESTURE IN. SOUND OUT.',
+];
+const melody = [72, 76, 79, 76, 74, 72, 67, 69, 72, 76, 81, 79, 76, 74, 72, 69];
+const chords = [
+  { name: 'C MAJOR', root: 48, notes: [60, 64, 67] },
+  { name: 'F MAJOR', root: 41, notes: [60, 65, 69] },
+  { name: 'G MAJOR', root: 43, notes: [59, 62, 67] },
+  { name: 'A MINOR', root: 45, notes: [60, 64, 69] },
+];
+let reelIndex = 0;
+let reelTimer;
+let audioContext;
+let masterGain;
+let scheduler;
+let nextNoteTime = 0;
+let step = 0;
+
+function showReelFrame(index) {
+  reelIndex = index % reelFrames.length;
+  reelFrames.forEach((frame, frameIndex) => {
+    frame.classList.toggle('is-active', frameIndex === reelIndex);
+  });
+  reelStep.textContent = `${String(reelIndex + 1).padStart(2, '0')} / 05`;
+  reelTitle.textContent = reelCaptions[reelIndex];
+}
+
+function startIdleReel() {
+  window.clearInterval(reelTimer);
+  if (!reduceMotion) {
+    reelTimer = window.setInterval(() => showReelFrame(reelIndex + 1), 2600);
+  }
+}
+
+startIdleReel();
+
+function midiFrequency(midi) {
+  return 440 * (2 ** ((midi - 69) / 12));
+}
+
+function playVoice(midi, when, duration, waveform, volume) {
+  const oscillator = audioContext.createOscillator();
+  const envelope = audioContext.createGain();
+  const filter = audioContext.createBiquadFilter();
+  oscillator.type = waveform;
+  oscillator.frequency.setValueAtTime(midiFrequency(midi), when);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(waveform === 'sine' ? 1500 : 3000, when);
+  envelope.gain.setValueAtTime(0.0001, when);
+  envelope.gain.exponentialRampToValueAtTime(volume, when + 0.025);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  oscillator.connect(filter);
+  filter.connect(envelope);
+  envelope.connect(masterGain);
+  oscillator.start(when);
+  oscillator.stop(when + duration + 0.035);
+}
+
+function playKick(when) {
+  const oscillator = audioContext.createOscillator();
+  const envelope = audioContext.createGain();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(115, when);
+  oscillator.frequency.exponentialRampToValueAtTime(48, when + 0.13);
+  envelope.gain.setValueAtTime(0.12, when);
+  envelope.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
+  oscillator.connect(envelope);
+  envelope.connect(masterGain);
+  oscillator.start(when);
+  oscillator.stop(when + 0.18);
+}
+
+function scheduleStep(when, index) {
+  const beat = index % melody.length;
+  const chord = chords[Math.floor(beat / 4)];
+  if (index % 8 === 0) showReelFrame(Math.floor(index / 8) % reelFrames.length);
+  playVoice(melody[beat], when, 0.22, 'triangle', 0.11);
+  if (beat % 4 === 0) {
+    chord.notes.forEach((note) => playVoice(note, when, 1.03, 'sine', 0.023));
+    playVoice(chord.root, when, 0.42, 'triangle', 0.065);
+    playKick(when);
+    demoStatus.textContent = `NOW PLAYING · ${chord.name}`;
+  }
+}
+
+function runScheduler() {
+  const stepDuration = 60 / 104 / 2;
+  while (nextNoteTime < audioContext.currentTime + 0.12) {
+    scheduleStep(nextNoteTime, step);
+    nextNoteTime += stepDuration;
+    step += 1;
+  }
+}
+
+async function startDemo() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    demoStatus.textContent = 'WEB AUDIO IS NOT AVAILABLE HERE';
+    return;
+  }
+  audioContext = new AudioContextClass();
+  await audioContext.resume();
+  masterGain = audioContext.createGain();
+  masterGain.gain.value = 0.44;
+  masterGain.connect(audioContext.destination);
+  window.clearInterval(reelTimer);
+  showReelFrame(0);
+  step = 0;
+  nextNoteTime = audioContext.currentTime + 0.08;
+  scheduler = window.setInterval(runScheduler, 30);
+  demoStage.classList.add('is-playing');
+  demoButton.setAttribute('aria-pressed', 'true');
+  demoButton.querySelector('.play-icon').textContent = 'Ⅱ';
+  demoButton.querySelector('.demo-button-label').textContent = 'Pause the music';
+  demoStatus.textContent = 'NOW PLAYING · C MAJOR';
+}
+
+function stopDemo() {
+  window.clearInterval(scheduler);
+  scheduler = undefined;
+  demoStage.classList.remove('is-playing');
+  demoButton.setAttribute('aria-pressed', 'false');
+  demoButton.querySelector('.play-icon').textContent = '▶';
+  demoButton.querySelector('.demo-button-label').textContent = 'Play a little music';
+  demoStatus.textContent = 'SOUND OFF · YOUR TURN';
+  if (audioContext && masterGain) {
+    const contextToClose = audioContext;
+    masterGain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.06);
+    window.setTimeout(() => contextToClose.close(), 450);
+  }
+  audioContext = undefined;
+  masterGain = undefined;
+  startIdleReel();
+}
+
+demoButton?.addEventListener('click', async () => {
+  if (scheduler !== undefined) {
+    stopDemo();
+    return;
+  }
+  try {
+    await startDemo();
+  } catch {
+    stopDemo();
+    demoStatus.textContent = 'COULD NOT START AUDIO · TRY AGAIN';
+  }
+});
