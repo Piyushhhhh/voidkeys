@@ -1,21 +1,97 @@
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Build a small, looping amplitude display to make the hero feel like a live
-// instrument without relying on a video or a stock image.
-const bars = document.querySelector('.wave-bars');
-if (bars && !reduceMotion) {
-  for (let i = 0; i < 52; i += 1) {
-    const bar = document.createElement('i');
-    const wave = Math.abs(Math.sin((i / 51) * Math.PI * 2.2));
-    bar.style.setProperty('--h', `${5 + wave * 24}px`);
-    bar.style.setProperty('--dur', `${0.45 + ((i * 17) % 80) / 100}s`);
-    bar.style.setProperty('--delay', `${-((i * 13) % 60) / 100}s`);
-    bars.append(bar);
+// Keep the navigation legible over both the moving footage and the page end.
+const nav = document.querySelector('.nav');
+if (nav) {
+  const hero = document.querySelector('.hero');
+  const toggle = () => {
+    nav.classList.toggle('nav--scrolled', window.scrollY > (hero ? hero.offsetHeight - 90 : 30));
+  };
+  window.addEventListener('scroll', toggle, { passive: true });
+  window.addEventListener('resize', toggle, { passive: true });
+  toggle();
+
+  const menuToggle = nav.querySelector('.nav-menu-toggle');
+  const menuLinks = [...nav.querySelectorAll('#primary-navigation a[href^="#"]')];
+  const closeMenu = () => {
+    nav.classList.remove('nav--menu-open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+    menuToggle?.setAttribute('aria-label', 'Open navigation');
+  };
+  menuToggle?.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('nav--menu-open');
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+    menuToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+  });
+  menuLinks.forEach((link) => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+
+  // A shared, animated underline follows the section currently in view.
+  const updateActiveLink = (link) => {
+    menuLinks.forEach((item) => {
+      const active = item === link;
+      item.classList.toggle('is-current', active);
+      if (active) item.setAttribute('aria-current', 'location');
+      else item.removeAttribute('aria-current');
+    });
+    if (link) {
+      nav.style.setProperty('--nav-marker-x', `${link.offsetLeft}px`);
+      nav.style.setProperty('--nav-marker-width', `${link.offsetWidth}px`);
+    } else {
+      nav.style.setProperty('--nav-marker-width', '0px');
+    }
+  };
+  const sectionLinks = menuLinks
+    .map((link) => ({ link, section: document.querySelector(link.getAttribute('href')) }))
+    .filter(({ section }) => section);
+  if ('IntersectionObserver' in window) {
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) updateActiveLink(sectionLinks.find(({ section }) => section === visible.target)?.link);
+    }, { rootMargin: '-38% 0px -48% 0px', threshold: [0, 0.15, 0.4, 0.7] });
+    sectionLinks.forEach(({ section }) => sectionObserver.observe(section));
   }
+  window.addEventListener('resize', () => {
+    const activeLink = menuLinks.find((link) => link.classList.contains('is-current'));
+    if (activeLink) updateActiveLink(activeLink);
+  }, { passive: true });
 }
 
-// Fade sections in as they enter view. Leave content visible when observers
-// or motion preferences make animation unavailable.
+// Keep remote background footage from downloading and decoding six clips at
+// once. Each one runs only while its section is close to the viewport.
+const backgroundVideos = [...document.querySelectorAll('[data-bg-video]')];
+if (reduceMotion) {
+  backgroundVideos.forEach((video) => video.classList.add('is-static'));
+} else if ('IntersectionObserver' in window) {
+  const videoObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const video = entry.target;
+      if (entry.isIntersecting && document.visibilityState === 'visible') {
+        video.play().catch(() => video.classList.add('is-static'));
+      } else {
+        video.pause();
+      }
+    });
+  }, { rootMargin: '240px 0px', threshold: 0 });
+  backgroundVideos.forEach((video) => videoObserver.observe(video));
+} else {
+  backgroundVideos.slice(0, 1).forEach((video) => video.play().catch(() => video.classList.add('is-static')));
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') backgroundVideos.forEach((video) => video.pause());
+  else if (!reduceMotion) backgroundVideos.forEach((video) => {
+    const bounds = video.getBoundingClientRect();
+    if (bounds.bottom > -240 && bounds.top < window.innerHeight + 240) {
+      video.play().catch(() => video.classList.add('is-static'));
+    }
+  });
+});
+
+// Content enters quietly; if reduced motion is requested, show it immediately.
 const revealItems = document.querySelectorAll('.reveal');
 if (!reduceMotion && 'IntersectionObserver' in window) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -25,168 +101,8 @@ if (!reduceMotion && 'IntersectionObserver' in window) {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.14 });
+  }, { threshold: 0.12 });
   revealItems.forEach((item) => revealObserver.observe(item));
 } else {
   revealItems.forEach((item) => item.classList.add('in-view'));
 }
-
-// A small, original Web Audio loop gives the animated player a real voice.
-// Sound starts only after the visitor presses Play, as required by browsers.
-const demoButton = document.querySelector('#demo-toggle');
-const demoStage = document.querySelector('#demo-stage');
-const demoStatus = document.querySelector('#demo-status');
-const reelFrames = [...document.querySelectorAll('.reel-frame')];
-const reelStep = document.querySelector('#reel-step');
-const reelTitle = document.querySelector('#reel-title');
-const reelCaptions = [
-  'TWO HANDS. ONE INSTRUMENT.',
-  'PINCH A NOTE. PLAY A MELODY.',
-  'HOLD A CHORD. FEEL IT RING.',
-  'TURN YOUR WRIST. OPEN THE FILTER.',
-  'GESTURE IN. SOUND OUT.',
-];
-const melody = [72, 76, 79, 76, 74, 72, 67, 69, 72, 76, 81, 79, 76, 74, 72, 69];
-const chords = [
-  { name: 'C MAJOR', root: 48, notes: [60, 64, 67] },
-  { name: 'F MAJOR', root: 41, notes: [60, 65, 69] },
-  { name: 'G MAJOR', root: 43, notes: [59, 62, 67] },
-  { name: 'A MINOR', root: 45, notes: [60, 64, 69] },
-];
-let reelIndex = 0;
-let reelTimer;
-let audioContext;
-let masterGain;
-let scheduler;
-let nextNoteTime = 0;
-let step = 0;
-
-function showReelFrame(index) {
-  reelIndex = index % reelFrames.length;
-  reelFrames.forEach((frame, frameIndex) => {
-    frame.classList.toggle('is-active', frameIndex === reelIndex);
-  });
-  reelStep.textContent = `${String(reelIndex + 1).padStart(2, '0')} / 05`;
-  reelTitle.textContent = reelCaptions[reelIndex];
-}
-
-function startIdleReel() {
-  window.clearInterval(reelTimer);
-  if (!reduceMotion) {
-    reelTimer = window.setInterval(() => showReelFrame(reelIndex + 1), 2600);
-  }
-}
-
-startIdleReel();
-
-function midiFrequency(midi) {
-  return 440 * (2 ** ((midi - 69) / 12));
-}
-
-function playVoice(midi, when, duration, waveform, volume) {
-  const oscillator = audioContext.createOscillator();
-  const envelope = audioContext.createGain();
-  const filter = audioContext.createBiquadFilter();
-  oscillator.type = waveform;
-  oscillator.frequency.setValueAtTime(midiFrequency(midi), when);
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(waveform === 'sine' ? 1500 : 3000, when);
-  envelope.gain.setValueAtTime(0.0001, when);
-  envelope.gain.exponentialRampToValueAtTime(volume, when + 0.025);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, when + duration);
-  oscillator.connect(filter);
-  filter.connect(envelope);
-  envelope.connect(masterGain);
-  oscillator.start(when);
-  oscillator.stop(when + duration + 0.035);
-}
-
-function playKick(when) {
-  const oscillator = audioContext.createOscillator();
-  const envelope = audioContext.createGain();
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(115, when);
-  oscillator.frequency.exponentialRampToValueAtTime(48, when + 0.13);
-  envelope.gain.setValueAtTime(0.12, when);
-  envelope.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
-  oscillator.connect(envelope);
-  envelope.connect(masterGain);
-  oscillator.start(when);
-  oscillator.stop(when + 0.18);
-}
-
-function scheduleStep(when, index) {
-  const beat = index % melody.length;
-  const chord = chords[Math.floor(beat / 4)];
-  if (index % 8 === 0) showReelFrame(Math.floor(index / 8) % reelFrames.length);
-  playVoice(melody[beat], when, 0.22, 'triangle', 0.11);
-  if (beat % 4 === 0) {
-    chord.notes.forEach((note) => playVoice(note, when, 1.03, 'sine', 0.023));
-    playVoice(chord.root, when, 0.42, 'triangle', 0.065);
-    playKick(when);
-    demoStatus.textContent = `NOW PLAYING · ${chord.name}`;
-  }
-}
-
-function runScheduler() {
-  const stepDuration = 60 / 104 / 2;
-  while (nextNoteTime < audioContext.currentTime + 0.12) {
-    scheduleStep(nextNoteTime, step);
-    nextNoteTime += stepDuration;
-    step += 1;
-  }
-}
-
-async function startDemo() {
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) {
-    demoStatus.textContent = 'WEB AUDIO IS NOT AVAILABLE HERE';
-    return;
-  }
-  audioContext = new AudioContextClass();
-  await audioContext.resume();
-  masterGain = audioContext.createGain();
-  masterGain.gain.value = 0.44;
-  masterGain.connect(audioContext.destination);
-  window.clearInterval(reelTimer);
-  showReelFrame(0);
-  step = 0;
-  nextNoteTime = audioContext.currentTime + 0.08;
-  scheduler = window.setInterval(runScheduler, 30);
-  demoStage.classList.add('is-playing');
-  demoButton.setAttribute('aria-pressed', 'true');
-  demoButton.querySelector('.play-icon').textContent = 'Ⅱ';
-  demoButton.querySelector('.demo-button-label').textContent = 'Pause the music';
-  demoStatus.textContent = 'NOW PLAYING · C MAJOR';
-}
-
-function stopDemo() {
-  window.clearInterval(scheduler);
-  scheduler = undefined;
-  demoStage.classList.remove('is-playing');
-  demoButton.setAttribute('aria-pressed', 'false');
-  demoButton.querySelector('.play-icon').textContent = '▶';
-  demoButton.querySelector('.demo-button-label').textContent = 'Play a little music';
-  demoStatus.textContent = 'SOUND OFF · YOUR TURN';
-  if (audioContext && masterGain) {
-    const contextToClose = audioContext;
-    masterGain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.06);
-    window.setTimeout(() => contextToClose.close(), 450);
-  }
-  audioContext = undefined;
-  masterGain = undefined;
-  startIdleReel();
-}
-
-demoButton?.addEventListener('click', async () => {
-  if (scheduler !== undefined) {
-    stopDemo();
-    return;
-  }
-  try {
-    await startDemo();
-  } catch {
-    stopDemo();
-    demoStatus.textContent = 'COULD NOT START AUDIO · TRY AGAIN';
-  }
-});
