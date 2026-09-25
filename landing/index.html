@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOIDKEYS — Hand-Tracked Synthesizer</title>
+  <meta name="description" content="Play music in the air. A hand-tracked synthesizer that runs entirely in the browser.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <!-- ── SECTION 1: HERO ── -->
+  <section class="s s-hero" id="hero">
+    <canvas id="c-hero"></canvas>
+
+    <div class="hero-hud">
+      <div class="hud-tl">
+        <span class="hud-rec"><i></i>REC</span>
+        <span class="hud-track">TRACKING: 2 HANDS</span>
+      </div>
+      <div class="hud-tr">
+        <span class="hud-fps">30 FPS</span>
+        <span class="hud-res">640 × 480</span>
+      </div>
+    </div>
+
+    <div class="ruler" id="ruler">
+      <span>C4</span><span class="acc">C#</span><span>D4</span><span class="acc">D#</span>
+      <span>E4</span><span>F4</span><span class="acc">F#</span><span>G4</span>
+      <span class="acc">G#</span><span>A4</span><span class="acc">A#</span><span>B4</span>
+      <span>C5</span><span class="acc">C#</span><span>D5</span><span class="acc">D#</span>
+      <span>E5</span><span>F5</span><span class="acc">F#</span><span>G5</span>
+    </div>
+
+    <div class="hero-body">
+      <p class="hero-label">HAND-TRACKED SYNTHESIZER / 2026</p>
+      <h1 class="hero-title reveal">VOIDKEYS</h1>
+      <h2 class="hero-sub reveal" data-d="1">PLAY MUSIC<br>IN THE AIR.</h2>
+      <p class="hero-copy reveal" data-d="2">No keyboard.<br>No MIDI.<br>Just your hands.</p>
+      <div class="hero-cta reveal" data-d="3">
+        <a href="https://voidkeys-tawny.vercel.app" class="btn">ENTER INSTRUMENT</a>
+        <a href="https://github.com/Piyushhhhh/voidkeys" class="btn btn--ghost" target="_blank" rel="noopener">VIEW SOURCE &#8599;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: YOUR HAND IS THE INSTRUMENT ── -->
+  <section class="s s-hand" id="hand">
+    <canvas id="c-hand"></canvas>
+    <div class="s-body">
+      <h2 class="reveal">YOUR HAND<br>IS THE INSTRUMENT.</h2>
+      <div class="ann reveal" data-d="1">
+        <span>thumb + index &rarr; white keys</span>
+        <span>thumb + middle &rarr; black keys</span>
+        <span>thumb + ring &rarr; glide</span>
+      </div>
+    </div>
+    <div class="note-row" id="note-row">
+      <span data-n="C4">C4</span>
+      <span data-n="D4">D4</span>
+      <span data-n="E4">E4</span>
+      <span data-n="G4">G4</span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: TWO HANDS. TWO ROLES. ── -->
+  <section class="s s-split" id="split">
+    <div class="split-half split-left">
+      <canvas id="c-left"></canvas>
+      <div class="chord-cards">
+        <span class="cc reveal">Fmaj7</span>
+        <span class="cc reveal" data-d="1">G7</span>
+        <span class="cc reveal" data-d="2">Em7</span>
+        <span class="cc reveal" data-d="3">Am7</span>
+      </div>
+    </div>
+    <div class="split-half split-right">
+      <canvas id="c-right"></canvas>
+    </div>
+    <div class="split-text">
+      <div class="split-col">
+        <h2 class="reveal">LEFT HAND<br>HOLDS THE<br>HARMONY.</h2>
+      </div>
+      <div class="split-col">
+        <h2 class="reveal" data-d="1">RIGHT HAND<br>PLAYS THE<br>MELODY.</h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: TWIST THE SOUND ── -->
+  <section class="s s-twist" id="twist">
+    <canvas id="c-twist"></canvas>
+    <div class="s-body">
+      <h2 class="reveal">TURN YOUR WRIST.<br>OPEN THE FILTER.</h2>
+      <p class="small reveal" data-d="1">No knobs required.</p>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5: EVERYTHING IS SYNTHESIZED ── -->
+  <section class="s s-synth" id="synth">
+    <canvas id="c-synth"></canvas>
+    <div class="s-body synth-body">
+      <h2 class="reveal">ZERO SAMPLES.</h2>
+      <h2 class="sub reveal" data-d="1">EVERY SOUND<br>GENERATED LIVE.</h2>
+      <div class="graph reveal" data-d="2">
+        <span>GESTURE</span><span class="arrow">&darr;</span>
+        <span>OSCILLATOR</span><span class="arrow">&darr;</span>
+        <span>FILTER</span><span class="arrow">&darr;</span>
+        <span>DELAY</span><span class="arrow">&darr;</span>
+        <span>GAIN</span><span class="arrow">&darr;</span>
+        <span>OUTPUT</span>
+      </div>
+      <div class="wave-labels reveal" data-d="3">
+        <span>MELODY</span><span>BASS</span><span>KICK</span><span>SNARE</span><span>HATS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 6: CAMERA STAYS HERE ── -->
+  <section class="s s-priv" id="priv">
+    <div class="s-body">
+      <h2 class="reveal">YOUR CAMERA<br>NEVER LEAVES<br>YOUR DEVICE.</h2>
+      <p class="priv-sub reveal" data-d="1">
+        Hand tracking runs locally.<br>
+        Audio runs locally.<br>
+        There is no backend.
+      </p>
+      <div class="tech-pills reveal" data-d="2">
+        <span>MEDIAPIPE</span><span>WASM</span><span>GPU</span><span>WEB AUDIO</span>
+      </div>
+    </div>
+    <div class="cam-frame" id="cam-frame">
+      <div class="cam-inner"><div class="cam-dot"></div></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 7: FINAL ── -->
+  <section class="s s-final" id="final">
+    <canvas id="c-final"></canvas>
+    <div class="s-body final-body">
+      <h1 class="reveal">VOIDKEYS</h1>
+      <p class="reveal" data-d="1">Play music in the air.</p>
+      <a href="https://voidkeys-tawny.vercel.app" class="btn reveal" data-d="2">ENTER INSTRUMENT</a>
+      <a href="https://github.com/Piyushhhhh/voidkeys" class="gh-link reveal" data-d="3" target="_blank" rel="noopener">github.com/Piyushhhhh/voidkeys</a>
+      <div class="built reveal" data-d="4">
+        <span>React 19</span><span>TypeScript</span><span>MediaPipe</span><span>Web Audio</span><span>WebGL</span>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
