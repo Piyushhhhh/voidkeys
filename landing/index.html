@@ -11,39 +11,29 @@
 
   <div class="grain"></div>
 
-  <!-- ── SECTION 1: HERO ── -->
+  <!-- ── 1. HERO — full image + floating glass text ── -->
   <section class="s s-hero" id="hero">
-    <div class="s-img">
-      <img src="images/hero.png" alt="" loading="eager">
-    </div>
+    <img class="s-bg" src="images/hero.png" alt="" loading="eager">
     <div class="hero-hud">
-      <div class="hud-tl">
-        <span class="hud-rec"><i></i>REC</span>
-        <span class="hud-track">TRACKING: 2 HANDS</span>
-      </div>
-      <div class="hud-tr">
-        <span class="hud-fps">30 FPS</span>
-        <span class="hud-res">640 &times; 480</span>
-      </div>
+      <span class="hud-rec"><i></i>REC</span>
+      <span class="hud-label">TRACKING: 2 HANDS</span>
+      <span class="hud-label right">30 FPS</span>
     </div>
-    <div class="hero-body">
-      <p class="hero-label">HAND-TRACKED SYNTHESIZER / 2026</p>
-      <h1 class="hero-title reveal">VOIDKEYS</h1>
-      <h2 class="hero-sub reveal" data-d="1">PLAY MUSIC<br>IN THE AIR.</h2>
-      <p class="hero-copy reveal" data-d="2">No keyboard.<br>No MIDI.<br>Just your hands.</p>
-      <div class="hero-cta reveal" data-d="3">
+    <div class="hero-glass">
+      <p class="tag">HAND-TRACKED SYNTHESIZER / 2026</p>
+      <h1>VOIDKEYS</h1>
+      <h2>PLAY MUSIC<br>IN THE AIR.</h2>
+      <p class="sub">No keyboard. No MIDI. Just your hands.</p>
+      <div class="cta">
         <a href="https://voidkeys-tawny.vercel.app" class="btn">ENTER INSTRUMENT</a>
         <a href="https://github.com/Piyushhhhh/voidkeys" class="btn btn--ghost" target="_blank" rel="noopener">VIEW SOURCE &#8599;</a>
       </div>
     </div>
   </section>
 
-  <!-- ── SECTION 2: YOUR HAND IS THE INSTRUMENT ── -->
-  <section class="s s-hand" id="hand">
-    <div class="s-img">
-      <img src="images/hand-melody.png" alt="" loading="lazy">
-    </div>
-    <div class="s-body s-body--bottom-left">
+  <!-- ── 2. TEXT: your hand is the instrument ── -->
+  <section class="s s-text" id="s-text-hand">
+    <div class="text-block">
       <h2 class="reveal">YOUR HAND<br>IS THE INSTRUMENT.</h2>
       <div class="ann reveal" data-d="1">
         <span>thumb + index &rarr; white keys</span>
@@ -53,66 +43,85 @@
     </div>
   </section>
 
-  <!-- ── SECTION 3: TWO HANDS. TWO ROLES. ── -->
-  <section class="s s-two" id="two">
-    <div class="s-img">
-      <img src="images/hand-chords.png" alt="" loading="lazy">
-    </div>
-    <div class="s-body s-body--split">
-      <div class="split-col split-col--left">
+  <!-- ── 3. IMAGE: melody hand ── -->
+  <section class="s s-image" id="s-img-melody">
+    <img class="s-bg" src="images/hand-melody.png" alt="Right hand playing melody with tracking landmarks" loading="lazy">
+  </section>
+
+  <!-- ── 4. TEXT: two hands, two roles ── -->
+  <section class="s s-text" id="s-text-split">
+    <div class="text-block text-split">
+      <div>
         <h2 class="reveal">LEFT HAND<br>HOLDS THE<br>HARMONY.</h2>
       </div>
-      <div class="split-col split-col--right">
+      <div>
         <h2 class="reveal" data-d="1">RIGHT HAND<br>PLAYS THE<br>MELODY.</h2>
       </div>
     </div>
   </section>
 
-  <!-- ── SECTION 4: TWIST THE SOUND ── -->
-  <section class="s s-twist" id="twist">
-    <div class="s-img">
-      <img src="images/wrist-filter.png" alt="" loading="lazy">
-    </div>
-    <div class="s-body s-body--top-left">
+  <!-- ── 5. IMAGE: chord hand ── -->
+  <section class="s s-image" id="s-img-chords">
+    <img class="s-bg" src="images/hand-chords.png" alt="Left hand triggering chord progressions" loading="lazy">
+  </section>
+
+  <!-- ── 6. TEXT: twist the sound ── -->
+  <section class="s s-text" id="s-text-twist">
+    <div class="text-block">
       <h2 class="reveal">TURN YOUR WRIST.<br>OPEN THE FILTER.</h2>
       <p class="small reveal" data-d="1">No knobs required.</p>
     </div>
   </section>
 
-  <!-- ── SECTION 5: EVERYTHING IS SYNTHESIZED ── -->
-  <section class="s s-synth" id="synth">
-    <div class="s-img">
-      <img src="images/audio-graph.png" alt="" loading="lazy">
-    </div>
-    <div class="s-body s-body--center">
+  <!-- ── 7. IMAGE: wrist filter ── -->
+  <section class="s s-image" id="s-img-filter">
+    <img class="s-bg" src="images/wrist-filter.png" alt="Wrist rotation controlling the synthesizer filter" loading="lazy">
+  </section>
+
+  <!-- ── 8. TEXT: zero samples ── -->
+  <section class="s s-text" id="s-text-synth">
+    <div class="text-block">
       <h2 class="reveal">ZERO SAMPLES.</h2>
-      <h2 class="sub reveal" data-d="1">EVERY SOUND<br>GENERATED LIVE.</h2>
+      <h2 class="h2-sub reveal" data-d="1">EVERY SOUND<br>GENERATED LIVE.</h2>
+      <div class="graph reveal" data-d="2">
+        <span>GESTURE</span><span class="arr">&darr;</span>
+        <span>OSCILLATOR</span><span class="arr">&darr;</span>
+        <span>FILTER</span><span class="arr">&darr;</span>
+        <span>DELAY</span><span class="arr">&darr;</span>
+        <span>GAIN</span><span class="arr">&darr;</span>
+        <span>OUTPUT</span>
+      </div>
     </div>
   </section>
 
-  <!-- ── SECTION 6: CAMERA STAYS HERE ── -->
-  <section class="s s-priv" id="priv">
-    <div class="s-body s-body--center">
+  <!-- ── 9. IMAGE: audio graph ── -->
+  <section class="s s-image" id="s-img-graph">
+    <img class="s-bg" src="images/audio-graph.png" alt="Full audio synthesis signal flow" loading="lazy">
+  </section>
+
+  <!-- ── 10. TEXT: privacy ── -->
+  <section class="s s-text" id="s-text-priv">
+    <div class="text-block">
       <h2 class="reveal">YOUR CAMERA<br>NEVER LEAVES<br>YOUR DEVICE.</h2>
-      <p class="priv-sub reveal" data-d="1">
+      <p class="sub reveal" data-d="1">
         Hand tracking runs locally.<br>
         Audio runs locally.<br>
         There is no backend.
       </p>
-      <div class="tech-pills reveal" data-d="2">
+      <div class="pills reveal" data-d="2">
         <span>MEDIAPIPE</span><span>WASM</span><span>GPU</span><span>WEB AUDIO</span>
       </div>
     </div>
   </section>
 
-  <!-- ── SECTION 7: FINAL ── -->
+  <!-- ── 11. FINAL CTA ── -->
   <section class="s s-final" id="final">
     <canvas id="c-final"></canvas>
-    <div class="s-body final-body">
+    <div class="text-block final-block">
       <h1 class="reveal">VOIDKEYS</h1>
-      <p class="reveal" data-d="1">Play music in the air.</p>
+      <p class="sub reveal" data-d="1">Play music in the air.</p>
       <a href="https://voidkeys-tawny.vercel.app" class="btn reveal" data-d="2">ENTER INSTRUMENT</a>
-      <a href="https://github.com/Piyushhhhh/voidkeys" class="gh-link reveal" data-d="3" target="_blank" rel="noopener">github.com/Piyushhhhh/voidkeys</a>
+      <a href="https://github.com/Piyushhhhh/voidkeys" class="gh reveal" data-d="3" target="_blank" rel="noopener">github.com/Piyushhhhh/voidkeys</a>
       <div class="built reveal" data-d="4">
         <span>React 19</span><span>TypeScript</span><span>MediaPipe</span><span>Web Audio</span><span>WebGL</span>
       </div>
